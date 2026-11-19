@@ -12,6 +12,16 @@
     row.scrollIntoView({ block: "nearest" });
   }
 
+  // With --replace-history, move without adding a history entry, so the tab
+  // can still be closed when go-grip stops. See replace-nav.js.
+  function navigate(href) {
+    if (document.documentElement.hasAttribute("data-grip-replace-nav")) {
+      window.location.replace(href);
+    } else {
+      window.location.href = href;
+    }
+  }
+
   function upLink() {
     return document.querySelector(".grip-listing-up a");
   }
@@ -77,7 +87,7 @@
       case "Backspace":
       case "ArrowLeft":
         var up = upLink();
-        if (up) window.location.href = up.href;
+        if (up) navigate(up.href);
         break;
       default:
         return;

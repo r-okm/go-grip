@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chrishrb/go-grip/internal"
+	"github.com/r-okm/go-grip/internal"
 	"github.com/spf13/cobra"
 )
 
@@ -30,6 +30,9 @@ var rootCmd = &cobra.Command{
 		boundingBox, _ := cmd.Flags().GetBool("bounding-box")
 		disabledFeatures, _ := cmd.Flags().GetStringSlice("disable-markdown-feature")
 		noReload, _ := cmd.Flags().GetBool("no-reload")
+		closeTab, _ := cmd.Flags().GetBool("close-tab-on-exit")
+		replaceHistory, _ := cmd.Flags().GetBool("replace-history")
+		findPort, _ := cmd.Flags().GetBool("find-port")
 		logger, err := newLogger(cmd, os.Stderr)
 		if err != nil {
 			return err
@@ -46,6 +49,9 @@ var rootCmd = &cobra.Command{
 
 		parser := internal.NewParser(disabledFeatures)
 		server := internal.NewServer(host, port, boundingBox, browser, !noReload, parser, logger)
+		server.SetCloseTabs(closeTab)
+		server.SetReplaceNav(replaceHistory)
+		server.SetFindPort(findPort)
 		return server.Serve(file)
 	},
 }
@@ -81,6 +87,7 @@ func init() {
 	rootCmd.Flags().BoolP("browser", "b", true, "Open new browser tab")
 	rootCmd.Flags().StringP("host", "H", "localhost", "Host or IP to listen on")
 	rootCmd.Flags().IntP("port", "p", 6419, "Port to use")
+	rootCmd.Flags().Bool("find-port", false, "If the port is busy, use the next free one (tries up to 100 ports)")
 	rootCmd.Flags().Bool("bounding-box", true, "Add bounding box to HTML")
 	rootCmd.Flags().StringSlice(
 		"disable-markdown-feature",
@@ -88,5 +95,7 @@ func init() {
 		"Disable optional markdown feature(s): "+strings.Join(internal.SupportedMarkdownFeatures(), ", "),
 	)
 	rootCmd.Flags().Bool("no-reload", false, "Disable automatic browser reload on file changes")
+	rootCmd.Flags().Bool("close-tab-on-exit", true, "Close the preview tab when the server stops (only tabs the browser lets scripts close)")
+	rootCmd.Flags().Bool("replace-history", false, "Follow links inside the preview without adding browser history entries, so --close-tab-on-exit still works after navigating (disables back/forward inside the preview)")
 	rootCmd.Flags().String("log-level", "info", "Log level on stderr: error, warn, info or debug")
 }

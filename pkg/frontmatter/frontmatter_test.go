@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chrishrb/go-grip/pkg/frontmatter"
+	"github.com/r-okm/go-grip/pkg/frontmatter"
 )
 
 // ---------- Extract tests ----------
@@ -234,5 +234,32 @@ func TestRenderTable_SingleKey(t *testing.T) {
 	s := string(out)
 	if !strings.Contains(s, "<th>key</th>") || !strings.Contains(s, "<td>value</td>") {
 		t.Errorf("single key/value not rendered correctly: %s", s)
+	}
+}
+
+func TestRenderTable_HorizontalLayout(t *testing.T) {
+	fm := []byte("title: Hello\ndate: 2024-01-01\ntags:\n  - go\n  - md\n")
+	out, err := frontmatter.RenderTable(fm)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := `<table class="frontmatter-table">` + "\n" +
+		"<thead>\n<tr><th>title</th><th>date</th><th>tags</th></tr>\n</thead>\n" +
+		"<tbody>\n<tr><td>Hello</td><td>2024-01-01</td><td>[go, md]</td></tr>\n</tbody>\n" +
+		"</table>\n"
+	if string(out) != want {
+		t.Errorf("unexpected table\nwant:\n%s\ngot:\n%s", want, out)
+	}
+}
+
+func TestRenderTable_NoKeys(t *testing.T) {
+	for _, fm := range []string{"", "# only a comment\n", "- a\n- b\n", "just a scalar\n"} {
+		out, err := frontmatter.RenderTable([]byte(fm))
+		if err != nil {
+			t.Fatalf("%q: unexpected error: %v", fm, err)
+		}
+		if len(out) != 0 {
+			t.Errorf("%q: expected no output, got %q", fm, out)
+		}
 	}
 }

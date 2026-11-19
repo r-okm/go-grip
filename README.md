@@ -61,7 +61,7 @@ graph TD;
 ```go
 package main
 
-import "github.com/chrishrb/go-grip/cmd"
+import "github.com/r-okm/go-grip/cmd"
 
 func main() {
 	fmt.Sprintln("Welcome to Grip! Use `go-grip --help` for more information.")
@@ -80,7 +80,7 @@ func main() {
 To install go-grip, simply:
 
 ```bash
-go install github.com/chrishrb/go-grip@latest
+go install github.com/r-okm/go-grip@latest
 ```
 
 > [!TIP]
@@ -103,6 +103,12 @@ You can also specify a port:
 
 ```bash
 go-grip -p 80 README.md
+```
+
+If the port is already in use, go-grip exits with an error. With `--find-port` it tries the following ports instead, up to 100 of them, and prints the URL it ends up using. A fixed starting port keeps the page's origin the same from one run to the next, so the theme and width you chose stay stored:
+
+```bash
+go-grip -p 6419 --find-port README.md
 ```
 
 By default the server only listens on `localhost`, so it is not reachable from other machines. To listen on a specific interface pass its IP address with `-H`, or use `0.0.0.0` to listen on all interfaces:
@@ -137,6 +143,18 @@ To disable automatic browser reload on file changes (useful for stable editing):
 
 ```bash
 go-grip --no-reload README.md
+```
+
+When the server stops on Ctrl-C or SIGTERM, it tells each open page to close its tab. Browsers only let a page close a tab that another program opened and that has not navigated since, such as the tab go-grip opens on start or one opened from an editor; other tabs stay open. To keep tabs open:
+
+```bash
+go-grip --close-tab-on-exit=false README.md
+```
+
+Following a link inside the preview, even to a heading on the same page, adds a history entry, and from then on the browser no longer lets the page close its tab. Such a tab stays open and shows a note that go-grip has stopped. To keep tabs closable, `--replace-history` makes links, Esc and the folder page's Backspace replace the current history entry instead; the browser's back and forward buttons then do nothing inside the preview:
+
+```bash
+go-grip --replace-history README.md
 ```
 
 To disable markdown features in the renderer, use `--disable-markdown-feature`.

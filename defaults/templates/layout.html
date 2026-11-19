@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html{{if .Reload}} data-grip-reload{{end}}{{if .ReplaceNav}} data-grip-replace-nav{{end}}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -40,8 +40,11 @@
     <script src="/static/js/mermaid.min.js"></script>
     <script src="/static/js/mermaid-init.js"></script>
     {{end}}
-    {{if .Reload}}
+    {{if .Events}}
     <script src="/static/js/live-reload.js"></script>
+    {{end}}
+    {{if .ReplaceNav}}
+    <script src="/static/js/replace-nav.js"></script>
     {{end}}
     {{if .IsListing}}
     <link rel="stylesheet" href="/static/css/dir-listing.css" />

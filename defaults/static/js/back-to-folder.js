@@ -22,6 +22,16 @@
     );
   }
 
+  // With --replace-history, move without adding a history entry, so the tab
+  // can still be closed when go-grip stops. See replace-nav.js.
+  function navigate(href) {
+    if (document.documentElement.hasAttribute("data-grip-replace-nav")) {
+      window.location.replace(href);
+    } else {
+      window.location.href = href;
+    }
+  }
+
   function onKeyDown(event) {
     if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
     if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
@@ -31,7 +41,7 @@
     var link = document.getElementById("grip-back");
     if (!link) return;
     event.preventDefault();
-    window.location.href = link.href;
+    navigate(link.href);
   }
 
   document.addEventListener("keydown", onKeyDown);
