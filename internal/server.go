@@ -41,6 +41,7 @@ type Server struct {
 	enableReload bool
 	closeTabs    bool
 	replaceNav   bool
+	findPort     bool
 	hub          *Hub
 	log          *slog.Logger
 
@@ -86,6 +87,12 @@ func (s *Server) reloading() bool {
 // for closing the tab on shutdown, or both.
 func (s *Server) streaming() bool {
 	return s.reloading() || s.closeTabs
+}
+
+// SetFindPort makes the server try the following ports when the requested
+// one is busy, instead of failing.
+func (s *Server) SetFindPort(on bool) {
+	s.findPort = on
 }
 
 // SetReplaceNav makes pages navigate inside the preview without adding
@@ -156,7 +163,7 @@ func (s *Server) serve(ctx context.Context, file string, ready chan<- string) er
 
 	// Bind before printing or opening the browser
 	// in order for a bad host or a busy port to fail fast
-	ln, err := net.Listen("tcp", net.JoinHostPort(s.host, strconv.Itoa(s.port)))
+	ln, err := s.listen()
 	if err != nil {
 		return err
 	}
@@ -231,6 +238,34 @@ func (s *Server) shutdown(srv *http.Server) error {
 		}
 	}
 	return nil
+}
+
+// portTries is how many ports, starting at the requested one, listen tries
+// when --find-port is on.
+const portTries = 100
+
+// listen binds the requested port. With findPort, a busy port moves on to
+// the next one, up to portTries ports; any other error stops at once.
+func (s *Server) listen() (net.Listener, error) {
+	tries := 1
+	if s.findPort && s.port != 0 {
+		tries = portTries
+	}
+	var err error
+	for port := s.port; port < s.port+tries && port <= 65535; port++ {
+		var ln net.Listener
+		ln, err = net.Listen("tcp", net.JoinHostPort(s.host, strconv.Itoa(port)))
+		if err == nil {
+			if port != s.port {
+				s.log.Debug("port busy, using the next free one", "requested", s.port, "port", port)
+			}
+			return ln, nil
+		}
+		if !errors.Is(err, syscall.EADDRINUSE) {
+			return nil, err
+		}
+	}
+	return nil, err
 }
 
 // isUnspecifiedHost reports whether host is a wildcard listen address

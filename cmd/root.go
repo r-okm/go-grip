@@ -32,6 +32,7 @@ var rootCmd = &cobra.Command{
 		noReload, _ := cmd.Flags().GetBool("no-reload")
 		closeTab, _ := cmd.Flags().GetBool("close-tab-on-exit")
 		replaceHistory, _ := cmd.Flags().GetBool("replace-history")
+		findPort, _ := cmd.Flags().GetBool("find-port")
 		logger, err := newLogger(cmd, os.Stderr)
 		if err != nil {
 			return err
@@ -50,6 +51,7 @@ var rootCmd = &cobra.Command{
 		server := internal.NewServer(host, port, boundingBox, browser, !noReload, parser, logger)
 		server.SetCloseTabs(closeTab)
 		server.SetReplaceNav(replaceHistory)
+		server.SetFindPort(findPort)
 		return server.Serve(file)
 	},
 }
@@ -85,6 +87,7 @@ func init() {
 	rootCmd.Flags().BoolP("browser", "b", true, "Open new browser tab")
 	rootCmd.Flags().StringP("host", "H", "localhost", "Host or IP to listen on")
 	rootCmd.Flags().IntP("port", "p", 6419, "Port to use")
+	rootCmd.Flags().Bool("find-port", false, "If the port is busy, use the next free one (tries up to 100 ports)")
 	rootCmd.Flags().Bool("bounding-box", true, "Add bounding box to HTML")
 	rootCmd.Flags().StringSlice(
 		"disable-markdown-feature",

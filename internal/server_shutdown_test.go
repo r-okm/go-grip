@@ -4,13 +4,16 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -255,5 +258,39 @@ func TestReload_Template(t *testing.T) {
 		if strings.Contains(body, "<html data-grip-reload>") != reload {
 			t.Errorf("reload=%v: data-grip-reload attribute mismatch", reload)
 		}
+	}
+}
+
+func TestListen_FindPort(t *testing.T) {
+	busy, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer busy.Close()
+	port := busy.Addr().(*net.TCPAddr).Port
+
+	s := NewServer("localhost", port, false, false, false, NewParser(nil), nil)
+	if ln, err := s.listen(); err == nil {
+		ln.Close()
+		t.Fatal("busy port without --find-port: want an error")
+	} else if !errors.Is(err, syscall.EADDRINUSE) {
+		t.Fatalf("want EADDRINUSE, got %v", err)
+	}
+
+	s.SetFindPort(true)
+	ln, err := s.listen()
+	if err != nil {
+		t.Fatalf("--find-port: %v", err)
+	}
+	defer ln.Close()
+	if got := ln.Addr().(*net.TCPAddr).Port; got <= port || got >= port+portTries {
+		t.Errorf("--find-port: got port %d, want one in (%d, %d)", got, port, port+portTries)
+	}
+
+	s = NewServer("no such host.invalid", port, false, false, false, NewParser(nil), nil)
+	s.SetFindPort(true)
+	if ln, err := s.listen(); err == nil {
+		ln.Close()
+		t.Error("bad host: want an error")
 	}
 }

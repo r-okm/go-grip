@@ -105,6 +105,12 @@ You can also specify a port:
 go-grip -p 80 README.md
 ```
 
+If the port is already in use, go-grip exits with an error. With `--find-port` it tries the following ports instead, up to 100 of them, and prints the URL it ends up using. A fixed starting port keeps the page's origin the same from one run to the next, so the theme and width you chose stay stored:
+
+```bash
+go-grip -p 6419 --find-port README.md
+```
+
 By default the server only listens on `localhost`, so it is not reachable from other machines. To listen on a specific interface pass its IP address with `-H`, or use `0.0.0.0` to listen on all interfaces:
 
 ```bash
