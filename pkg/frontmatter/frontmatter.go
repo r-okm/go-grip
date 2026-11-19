@@ -75,43 +75,50 @@ func Extract(src []byte) (fm []byte, body []byte, found bool) {
 	return fmBytes, rest[closeEnd:], true
 }
 
-// RenderTable renders parsed YAML frontmatter bytes as an HTML table.
-// Top-level keys appear in document order. Nested values are rendered as their
-// string representation. All values are HTML-escaped.
+// RenderTable renders parsed YAML frontmatter bytes as an HTML table laid out
+// the way GitHub shows frontmatter: one header row holding the top-level keys
+// and one body row holding their values. Keys appear in document order.
+// Nested values are rendered as their string representation. All values are
+// HTML-escaped. Frontmatter without top-level keys renders as nothing.
 func RenderTable(fm []byte) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(fm, &doc); err != nil {
 		return nil, err
 	}
 
-	var rows []struct{ key, val string }
+	var keys, vals []string
 
 	if doc.Kind == yaml.DocumentNode && len(doc.Content) > 0 {
 		mapping := doc.Content[0]
 		if mapping.Kind == yaml.MappingNode {
 			// MappingNode Content is [key, value, key, value, ...]
 			for i := 0; i+1 < len(mapping.Content); i += 2 {
-				k := mapping.Content[i].Value
-				v := nodeToString(mapping.Content[i+1])
-				rows = append(rows, struct{ key, val string }{k, v})
+				keys = append(keys, mapping.Content[i].Value)
+				vals = append(vals, nodeToString(mapping.Content[i+1]))
 			}
 		}
 	}
 
+	if len(keys) == 0 {
+		return nil, nil
+	}
+
 	var buf strings.Builder
 	buf.WriteString(`<table class="frontmatter-table">` + "\n")
-	buf.WriteString("<tbody>\n")
-	for _, row := range rows {
-		buf.WriteString("<tr>")
+	buf.WriteString("<thead>\n<tr>")
+	for _, k := range keys {
 		buf.WriteString("<th>")
-		buf.WriteString(html.EscapeString(row.key))
+		buf.WriteString(html.EscapeString(k))
 		buf.WriteString("</th>")
-		buf.WriteString("<td>")
-		buf.WriteString(html.EscapeString(row.val))
-		buf.WriteString("</td>")
-		buf.WriteString("</tr>\n")
 	}
-	buf.WriteString("</tbody>\n")
+	buf.WriteString("</tr>\n</thead>\n")
+	buf.WriteString("<tbody>\n<tr>")
+	for _, v := range vals {
+		buf.WriteString("<td>")
+		buf.WriteString(html.EscapeString(v))
+		buf.WriteString("</td>")
+	}
+	buf.WriteString("</tr>\n</tbody>\n")
 	buf.WriteString("</table>\n")
 
 	return []byte(buf.String()), nil
