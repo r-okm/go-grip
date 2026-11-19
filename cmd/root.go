@@ -30,6 +30,8 @@ var rootCmd = &cobra.Command{
 		boundingBox, _ := cmd.Flags().GetBool("bounding-box")
 		disabledFeatures, _ := cmd.Flags().GetStringSlice("disable-markdown-feature")
 		noReload, _ := cmd.Flags().GetBool("no-reload")
+		closeTab, _ := cmd.Flags().GetBool("close-tab-on-exit")
+		replaceHistory, _ := cmd.Flags().GetBool("replace-history")
 		logger, err := newLogger(cmd, os.Stderr)
 		if err != nil {
 			return err
@@ -46,6 +48,8 @@ var rootCmd = &cobra.Command{
 
 		parser := internal.NewParser(disabledFeatures)
 		server := internal.NewServer(host, port, boundingBox, browser, !noReload, parser, logger)
+		server.SetCloseTabs(closeTab)
+		server.SetReplaceNav(replaceHistory)
 		return server.Serve(file)
 	},
 }
@@ -88,5 +92,7 @@ func init() {
 		"Disable optional markdown feature(s): "+strings.Join(internal.SupportedMarkdownFeatures(), ", "),
 	)
 	rootCmd.Flags().Bool("no-reload", false, "Disable automatic browser reload on file changes")
+	rootCmd.Flags().Bool("close-tab-on-exit", true, "Close the preview tab when the server stops (only tabs the browser lets scripts close)")
+	rootCmd.Flags().Bool("replace-history", false, "Follow links inside the preview without adding browser history entries, so --close-tab-on-exit still works after navigating (disables back/forward inside the preview)")
 	rootCmd.Flags().String("log-level", "info", "Log level on stderr: error, warn, info or debug")
 }

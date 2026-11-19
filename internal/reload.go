@@ -46,6 +46,7 @@ func (s *fsnotifySource) Add(dir string) error          { return s.w.Add(dir) }
 func (s *fsnotifySource) Remove(dir string) error       { return s.w.Remove(dir) }
 func (s *fsnotifySource) Events() <-chan fsnotify.Event { return s.w.Events }
 func (s *fsnotifySource) Errors() <-chan error          { return s.w.Errors }
+func (s *fsnotifySource) Close() error                  { return s.w.Close() }
 
 // Hub fans file system events out to the subscribers they are relevant to.
 // It keeps one non-recursive watch per folder that at least one subscriber

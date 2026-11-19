@@ -139,6 +139,18 @@ To disable automatic browser reload on file changes (useful for stable editing):
 go-grip --no-reload README.md
 ```
 
+When the server stops on Ctrl-C or SIGTERM, it tells each open page to close its tab. Browsers only let a page close a tab that another program opened and that has not navigated since, such as the tab go-grip opens on start or one opened from an editor; other tabs stay open. To keep tabs open:
+
+```bash
+go-grip --close-tab-on-exit=false README.md
+```
+
+Following a link inside the preview, even to a heading on the same page, adds a history entry, and from then on the browser no longer lets the page close its tab. Such a tab stays open and shows a note that go-grip has stopped. To keep tabs closable, `--replace-history` makes links, Esc and the folder page's Backspace replace the current history entry instead; the browser's back and forward buttons then do nothing inside the preview:
+
+```bash
+go-grip --replace-history README.md
+```
+
 To disable markdown features in the renderer, use `--disable-markdown-feature`.
 Supported feature names are `details`, `footnote`, `ghissue`, `mathjax`, and `mermaid`.
 
