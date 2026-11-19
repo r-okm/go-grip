@@ -83,7 +83,7 @@ func TestServe_ShutdownSendsCloseEvent(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			if resp.StatusCode != http.StatusOK {
 				t.Fatalf("status %d", resp.StatusCode)
 			}
@@ -126,7 +126,7 @@ func TestServe_CloseTabsOffNoReloadHasNoStream(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
 		t.Error("event stream should not be served when reload and close-tabs are off")
 	}
@@ -135,7 +135,7 @@ func TestServe_CloseTabsOffNoReloadHasNoStream(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer page.Body.Close()
+	defer func() { _ = page.Body.Close() }()
 	body := new(strings.Builder)
 	_, _ = bufio.NewReader(page.Body).WriteTo(body)
 	if strings.Contains(body.String(), "live-reload.js") {
@@ -152,7 +152,7 @@ func TestServe_CloseTabsOffEndsStreamPromptly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	r := bufio.NewReader(resp.Body)
 	if line, _ := r.ReadString('\n'); !strings.HasPrefix(line, ": connected") {
 		t.Fatalf("unexpected first line %q", line)
@@ -266,12 +266,12 @@ func TestListen_FindPort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer busy.Close()
+	defer func() { _ = busy.Close() }()
 	port := busy.Addr().(*net.TCPAddr).Port
 
 	s := NewServer("localhost", port, false, false, false, NewParser(nil), nil)
 	if ln, err := s.listen(); err == nil {
-		ln.Close()
+		_ = ln.Close()
 		t.Fatal("busy port without --find-port: want an error")
 	} else if !errors.Is(err, syscall.EADDRINUSE) {
 		t.Fatalf("want EADDRINUSE, got %v", err)
@@ -282,7 +282,7 @@ func TestListen_FindPort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("--find-port: %v", err)
 	}
-	defer ln.Close()
+	defer func() { _ = ln.Close() }()
 	if got := ln.Addr().(*net.TCPAddr).Port; got <= port || got >= port+portTries {
 		t.Errorf("--find-port: got port %d, want one in (%d, %d)", got, port, port+portTries)
 	}
@@ -290,7 +290,7 @@ func TestListen_FindPort(t *testing.T) {
 	s = NewServer("no such host.invalid", port, false, false, false, NewParser(nil), nil)
 	s.SetFindPort(true)
 	if ln, err := s.listen(); err == nil {
-		ln.Close()
+		_ = ln.Close()
 		t.Error("bad host: want an error")
 	}
 }
