@@ -27,7 +27,7 @@ import (
 
 	chroma_html "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/chrishrb/go-grip/defaults"
+	"github.com/r-okm/go-grip/defaults"
 )
 
 const defaultHTMLTitle = "go-grip - markdown preview"

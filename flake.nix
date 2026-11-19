@@ -29,7 +29,7 @@
           "-s"
           "-w"
           "-X"
-          "github.com/chrishrb/go-grip/cmd.version=${version}"
+          "github.com/r-okm/go-grip/cmd.version=${version}"
         ];
         # Only for updating vendorHas
         # vendorHash = "sha256-RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR=";

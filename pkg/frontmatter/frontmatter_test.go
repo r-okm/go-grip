@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/chrishrb/go-grip/pkg/frontmatter"
+	"github.com/r-okm/go-grip/pkg/frontmatter"
 )
 
 // ---------- Extract tests ----------

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/chrishrb/go-grip/internal"
+	"github.com/r-okm/go-grip/internal"
 	"github.com/spf13/cobra"
 )
 

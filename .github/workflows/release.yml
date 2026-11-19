@@ -32,5 +32,5 @@ jobs:
           goarch: ${{ matrix.goarch }}
           goversion: 1.23
           binary_name: "go-grip"
-          ldflags: -s -w -X github.com/chrishrb/go-grip/cmd.version=${{ github.ref_name }}
+          ldflags: -s -w -X github.com/r-okm/go-grip/cmd.version=${{ github.ref_name }}
           extra_files: LICENSE README.md
